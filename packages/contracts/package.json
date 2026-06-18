@@ -1,0 +1,19 @@
+{
+  "name": "@cowchain/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Foundry contracts: vendored T-REX (ERC-3643), KILT identity bridge, atomic DvP settlement, mock stablecoin",
+  "license": "GPL-3.0",
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test",
+    "lint": "forge fmt --check",
+    "sizes": "forge build --sizes"
+  },
+  "devDependencies": {
+    "@onchain-id/solidity": "2.2.1",
+    "@openzeppelin/contracts": "4.8.3",
+    "@openzeppelin/contracts-upgradeable": "4.8.3",
+    "@tokenysolutions/t-rex": "4.1.6"
+  }
+}

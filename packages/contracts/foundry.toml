@@ -1,0 +1,31 @@
+# Foundry config for the Cowchain RWA DvP contracts.
+#
+# Target: Polkadot Hub TestNet via the REVM backend (runs unmodified EVM bytecode).
+# Build with upstream Foundry NIGHTLY (forge >= 1.6.0-nightly), which has native
+# `--chain polkadot-testnet` support. NOTE: `forge test` runs on Anvil, not Hub —
+# it does NOT reflect Hub's multi-dimensional gas, existential deposit, or
+# precompiles. Anything touching precompiles/atomicity gets an on-chain integration
+# test against the live testnet (see test/integration + script/).
+
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib", "node_modules"]
+# Pinned to T-REX / ONCHAINID's exact pragma. solc 0.8.17 emits london-era bytecode
+# (no PUSH0/transient storage), which REVM executes without surprises.
+solc_version = "0.8.17"
+optimizer = true
+optimizer_runs = 200
+# Vendored audited suites carry their own licenses (GPL-3.0); silence SPDX noise
+# only for third-party libs, never our own src.
+fs_permissions = [{ access = "read-write", path = "./deployments" }, { access = "read", path = "./" }]
+
+[rpc_endpoints]
+hub_testnet = "${HUB_TESTNET_RPC_URL}"
+
+# `forge fmt` settings for our original contracts.
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = true
+int_types = "long"

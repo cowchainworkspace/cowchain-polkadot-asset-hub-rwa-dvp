@@ -1,0 +1,23 @@
+{
+  "name": "cowchain-rwa-dvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Compliant RWA issuance & atomic DvP settlement on Polkadot Hub — reference implementation by Cowchain",
+  "license": "GPL-3.0",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3"
+  }
+}

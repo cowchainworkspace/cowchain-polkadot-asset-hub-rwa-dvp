@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# secrets / env — NEVER commit real keys
+.env
+.env.*
+!.env.example
+
+# foundry build artifacts
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+packages/contracts/.gas-snapshot
+
+# next.js / turbo / builds
+.next/
+out/
+dist/
+.turbo/
+
+# local CA bundle (machine-specific, exported from the OS trust store)
+.certs/
+
+# logs / os
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
