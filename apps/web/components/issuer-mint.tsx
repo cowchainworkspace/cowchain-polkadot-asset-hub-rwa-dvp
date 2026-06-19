@@ -71,7 +71,7 @@ export function IssuerMint() {
             <label className="text-xs uppercase tracking-wider text-muted">Recipient (must be KYC-verified)</label>
             <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="0x…" className={inputClass} />
             {validTo && recipientVerified.data === false && (
-              <p className="mt-1 text-xs text-rose-300">This address is not KYC-verified — the mint would revert.</p>
+              <p className="mt-1 text-xs text-rose-600">This address is not KYC-verified — the mint would revert.</p>
             )}
           </div>
           <div>
@@ -90,8 +90,8 @@ export function IssuerMint() {
           >
             {isPending ? "Issuing…" : "Mint bond"}
           </Button>
-          {hash && <p className="break-all text-xs text-emerald-300">Submitted: {hash}</p>}
-          {error && <p className="text-xs text-rose-300">{(error as Error).message.split("\n")[0]}</p>}
+          {hash && <p className="break-all text-xs text-emerald-600">Submitted: {hash}</p>}
+          {error && <p className="text-xs text-rose-600">{(error as Error).message.split("\n")[0]}</p>}
         </div>
       )}
     </Card>

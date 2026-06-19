@@ -58,7 +58,7 @@ export function InvestorPanel() {
           )}
         </div>
         <p className="mt-3 text-xs leading-relaxed text-muted">
-          Verification is proven by an on-chain KILT <span className="text-slate-300">sr25519</span> signature, checked
+          Verification is proven by an on-chain KILT <span className="text-strong">sr25519</span> signature, checked
           natively by the System precompile (<span className="font-mono">0x900</span>). Without a valid KYC claim this
           security token cannot be received — transfers revert.
         </p>
@@ -89,7 +89,7 @@ export function InvestorPanel() {
             </Button>
           )}
           <p className="mt-2 text-xs text-muted">
-            Transactions need a little <span className="text-slate-300">PAS</span> for gas — get test PAS from the{" "}
+            Transactions need a little <span className="text-strong">PAS</span> for gas — get test PAS from the{" "}
             <a
               href="https://faucet.polkadot.io/"
               target="_blank"
