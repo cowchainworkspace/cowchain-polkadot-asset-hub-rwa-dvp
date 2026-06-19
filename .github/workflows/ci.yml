@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref (e.g. rapid pushes to a PR).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: Contracts (forge)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with forge-std submodule)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Solidity remappings resolve OpenZeppelin / ONCHAINID from node_modules.
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Foundry (nightly)
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Format check
+        run: forge fmt --check
+        working-directory: packages/contracts
+
+      - name: Build
+        run: forge build --sizes
+        working-directory: packages/contracts
+
+      # Offline: precompile is mocked, no RPC/keys needed (integration tests
+      # against the live testnet are run manually, not in CI).
+      - name: Test
+        run: forge test -vvv
+        working-directory: packages/contracts
+
+  web:
+    name: Web (next build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter @cowchain/web build

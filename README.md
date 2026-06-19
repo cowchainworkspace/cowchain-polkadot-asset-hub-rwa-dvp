@@ -8,7 +8,7 @@
 ![chain](https://img.shields.io/badge/Polkadot%20Hub-TestNet%20420420417-E6007A)
 ![standard](https://img.shields.io/badge/standard-ERC--3643%20(T--REX)-56b3fa)
 ![identity](https://img.shields.io/badge/identity-KILT%20sr25519%20on--chain-7a3fff)
-![tests](https://img.shields.io/badge/tests-31%20passing-2ea44f)
+[![ci](https://github.com/cowchainworkspace/cowchain-polkadot-asset-hub-rwa-dvp/actions/workflows/ci.yml/badge.svg)](https://github.com/cowchainworkspace/cowchain-polkadot-asset-hub-rwa-dvp/actions/workflows/ci.yml)
 ![license](https://img.shields.io/badge/license-GPL--3.0-blue)
 
 ### ▶ Live demo
@@ -18,24 +18,14 @@ The contracts are already live on [Polkadot Hub TestNet](https://blockscout-test
 
 ---
 
-## About Cowchain
+## About
 
-[**Cowchain**](https://cowchain.io) builds compliant tokenization and settlement infrastructure for real-world assets
-on Polkadot. This repository is an open-source reference implementation showing that the institutional RWA lifecycle —
-compliant issuance, on-chain identity, and atomic settlement — works end-to-end on Polkadot Hub today.
-
-**Get in touch**
-
-- 🌐 Website — [cowchain.io](https://cowchain.io)
-- 📫 Email — [dev@cowchain.io](mailto:dev@cowchain.io)
-- 💼 LinkedIn — [Cowchain](https://www.linkedin.com/company/cowchaindev/)
-
----
-
-This is an **educational reference** — not production
-infrastructure. The code prioritizes correctness, clarity, and well-commented readability for an institutional
-audience (asset managers, banks, the Polkadot related entities). Every Hub/KILT/T-REX fact was verified against current
-official docs (June 2026) and the whole stack is **deployed and proven on Polkadot Hub TestNet**.
+[**Cowchain**](https://cowchain.io) builds compliant tokenization and settlement infrastructure for real-world
+assets on Polkadot. This repository is an open-source **educational reference** — not production infrastructure —
+showing the institutional RWA lifecycle (compliant issuance, on-chain identity, atomic settlement) working
+end-to-end on Polkadot Hub today. The code prioritizes correctness, clarity, and well-commented readability for an
+institutional audience (asset managers, banks, Polkadot entities). Every Hub/KILT/T-REX fact was verified against
+current official docs (June 2026); the whole stack is **deployed and proven on Polkadot Hub TestNet**.
 
 ---
 
@@ -55,6 +45,7 @@ official docs (June 2026) and the whole stack is **deployed and proven on Polkad
 - [Trust model & limitations](#trust-model--limitations)
 - [Roles & privileges](#roles--privileges)
 - [Production roadmap](#production-roadmap)
+- [Get in touch](#get-in-touch)
 - [License](#license)
 
 ---
@@ -230,6 +221,7 @@ All of this runs as real transactions on Polkadot Hub TestNet — not mocks:
 
 ```
 cowchain-rwa-dvp/
+├─ .github/workflows/             CI — forge fmt/build/test + web build (push & PR)
 ├─ apps/
 │  └─ web/                         Next.js 15 dApp (issuer / investor / DvP / reporting)
 ├─ packages/
@@ -384,6 +376,14 @@ disables `renounceOwnership` to avoid admin-loss footguns.
 
 ---
 
+## Get in touch
+
+- 🌐 Website — [cowchain.io](https://cowchain.io)
+- 📫 Email — [dev@cowchain.io](mailto:dev@cowchain.io)
+- 💼 LinkedIn — [Cowchain](https://www.linkedin.com/company/cowchaindev/)
+
+---
+
 ## License
 
 GPL-3.0 — inherited from the vendored Tokeny T-REX suite. See [LICENSE](LICENSE) and
@@ -391,5 +391,4 @@ GPL-3.0 — inherited from the vendored Tokeny T-REX suite. See [LICENSE](LICENS
 
 ---
 
-<sub>Reference implementation by **Cowchain**. Built and verified against current Polkadot Hub / KILT / ERC-3643 docs,
-June 2026. Not audited; not for production use.</sub>
+<sub>Reference implementation by **Cowchain**. Not audited; not for production use.</sub>
