@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {Script, console2} from "forge-std/Script.sol";
+import { Script, console2 } from "forge-std/Script.sol";
 
 // Vendored T-REX (ERC-3643) implementation contracts
-import {ClaimTopicsRegistry} from "../src/trex/registry/implementation/ClaimTopicsRegistry.sol";
-import {TrustedIssuersRegistry} from "../src/trex/registry/implementation/TrustedIssuersRegistry.sol";
-import {IdentityRegistryStorage} from "../src/trex/registry/implementation/IdentityRegistryStorage.sol";
-import {IdentityRegistry} from "../src/trex/registry/implementation/IdentityRegistry.sol";
-import {ModularCompliance} from "../src/trex/compliance/modular/ModularCompliance.sol";
-import {Token} from "../src/trex/token/Token.sol";
-import {IClaimIssuer} from "@onchain-id/solidity/contracts/interface/IClaimIssuer.sol";
+import { ClaimTopicsRegistry } from "../src/trex/registry/implementation/ClaimTopicsRegistry.sol";
+import { TrustedIssuersRegistry } from "../src/trex/registry/implementation/TrustedIssuersRegistry.sol";
+import { IdentityRegistryStorage } from "../src/trex/registry/implementation/IdentityRegistryStorage.sol";
+import { IdentityRegistry } from "../src/trex/registry/implementation/IdentityRegistry.sol";
+import { ModularCompliance } from "../src/trex/compliance/modular/ModularCompliance.sol";
+import { Token } from "../src/trex/token/Token.sol";
+import { IClaimIssuer } from "@onchain-id/solidity/contracts/interface/IClaimIssuer.sol";
 
 // Cowchain originals
-import {KiltIdentityBridge} from "../src/KiltIdentityBridge.sol";
-import {DvPSettlement} from "../src/DvPSettlement.sol";
-import {MockStablecoin} from "../src/MockStablecoin.sol";
+import { KiltIdentityBridge } from "../src/KiltIdentityBridge.sol";
+import { DvPSettlement } from "../src/DvPSettlement.sol";
+import { MockStablecoin } from "../src/MockStablecoin.sol";
 
 /**
  * @title DeployTREX
@@ -137,17 +137,37 @@ contract DeployTREX is Script {
         string memory json = string.concat(
             "{\n",
             '  "chainId": 420420417,\n',
-            '  "deployer": "', vm.toString(deployer), '",\n',
+            '  "deployer": "',
+            vm.toString(deployer),
+            '",\n',
             '  "kycClaimTopic": 1,\n',
-            '  "claimTopicsRegistry": "', vm.toString(address(ctr)), '",\n',
-            '  "trustedIssuersRegistry": "', vm.toString(address(tir)), '",\n',
-            '  "identityRegistryStorage": "', vm.toString(address(irs)), '",\n',
-            '  "identityRegistry": "', vm.toString(address(ir)), '",\n',
-            '  "modularCompliance": "', vm.toString(address(mc)), '",\n',
-            '  "token": "', vm.toString(address(token)), '",\n',
-            '  "kiltIdentityBridge": "', vm.toString(address(bridge)), '",\n',
-            '  "dvpSettlement": "', vm.toString(address(dvp)), '",\n',
-            '  "mockStablecoin": "', vm.toString(address(cash)), '"\n',
+            '  "claimTopicsRegistry": "',
+            vm.toString(address(ctr)),
+            '",\n',
+            '  "trustedIssuersRegistry": "',
+            vm.toString(address(tir)),
+            '",\n',
+            '  "identityRegistryStorage": "',
+            vm.toString(address(irs)),
+            '",\n',
+            '  "identityRegistry": "',
+            vm.toString(address(ir)),
+            '",\n',
+            '  "modularCompliance": "',
+            vm.toString(address(mc)),
+            '",\n',
+            '  "token": "',
+            vm.toString(address(token)),
+            '",\n',
+            '  "kiltIdentityBridge": "',
+            vm.toString(address(bridge)),
+            '",\n',
+            '  "dvpSettlement": "',
+            vm.toString(address(dvp)),
+            '",\n',
+            '  "mockStablecoin": "',
+            vm.toString(address(cash)),
+            '"\n',
             "}\n"
         );
         vm.writeFile("deployments/hub-testnet.json", json);

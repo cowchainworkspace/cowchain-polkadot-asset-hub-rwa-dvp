@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {IIdentity} from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
-import {ISystem, SYSTEM_PRECOMPILE} from "./precompiles/ISystem.sol";
+import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { IIdentity } from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
+import { ISystem, SYSTEM_PRECOMPILE } from "./precompiles/ISystem.sol";
 
 /**
  * @title  KiltIdentityBridge

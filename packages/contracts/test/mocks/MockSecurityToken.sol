@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @notice Minimal stand-in for an ERC-3643 token in DvP unit tests. Its `transfer`/`transferFrom`
@@ -12,7 +12,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract MockSecurityToken is ERC20 {
     mapping(address => bool) public compliant;
 
-    constructor() ERC20("Mock Security", "mSEC") {}
+    constructor() ERC20("Mock Security", "mSEC") { }
 
     function mint(address to, uint256 amount) external {
         _mint(to, amount);

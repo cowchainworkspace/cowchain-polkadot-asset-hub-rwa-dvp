@@ -31,11 +31,10 @@ interface ISystem {
      * @param  publicKey the signer's 32-byte sr25519 public key
      * @return valid     true iff `signature` is valid for (`message`, `publicKey`)
      */
-    function sr25519Verify(
-        uint8[64] calldata signature,
-        bytes calldata message,
-        bytes32 publicKey
-    ) external view returns (bool valid);
+    function sr25519Verify(uint8[64] calldata signature, bytes calldata message, bytes32 publicKey)
+        external
+        view
+        returns (bool valid);
 
     /**
      * @notice Convert an EVM (H160) address to its 32-byte Substrate AccountId.

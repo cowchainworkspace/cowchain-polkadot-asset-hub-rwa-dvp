@@ -1,24 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {Test} from "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
 // Real vendored T-REX (ERC-3643) suite
-import {ClaimTopicsRegistry} from "../../src/trex/registry/implementation/ClaimTopicsRegistry.sol";
-import {TrustedIssuersRegistry} from "../../src/trex/registry/implementation/TrustedIssuersRegistry.sol";
-import {IdentityRegistryStorage} from "../../src/trex/registry/implementation/IdentityRegistryStorage.sol";
-import {IdentityRegistry} from "../../src/trex/registry/implementation/IdentityRegistry.sol";
-import {ModularCompliance} from "../../src/trex/compliance/modular/ModularCompliance.sol";
-import {Token} from "../../src/trex/token/Token.sol";
-import {IClaimIssuer} from "@onchain-id/solidity/contracts/interface/IClaimIssuer.sol";
-import {IIdentity} from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
-import {Identity} from "@onchain-id/solidity/contracts/Identity.sol";
+import { ClaimTopicsRegistry } from "../../src/trex/registry/implementation/ClaimTopicsRegistry.sol";
+import { TrustedIssuersRegistry } from "../../src/trex/registry/implementation/TrustedIssuersRegistry.sol";
+import { IdentityRegistryStorage } from "../../src/trex/registry/implementation/IdentityRegistryStorage.sol";
+import { IdentityRegistry } from "../../src/trex/registry/implementation/IdentityRegistry.sol";
+import { ModularCompliance } from "../../src/trex/compliance/modular/ModularCompliance.sol";
+import { Token } from "../../src/trex/token/Token.sol";
+import { IClaimIssuer } from "@onchain-id/solidity/contracts/interface/IClaimIssuer.sol";
+import { IIdentity } from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
+import { Identity } from "@onchain-id/solidity/contracts/Identity.sol";
 
 // Cowchain originals
-import {KiltIdentityBridge} from "../../src/KiltIdentityBridge.sol";
-import {DvPSettlement} from "../../src/DvPSettlement.sol";
-import {MockStablecoin} from "../../src/MockStablecoin.sol";
-import {ISystem, SYSTEM_PRECOMPILE} from "../../src/precompiles/ISystem.sol";
+import { KiltIdentityBridge } from "../../src/KiltIdentityBridge.sol";
+import { DvPSettlement } from "../../src/DvPSettlement.sol";
+import { MockStablecoin } from "../../src/MockStablecoin.sol";
+import { ISystem, SYSTEM_PRECOMPILE } from "../../src/precompiles/ISystem.sol";
 
 /**
  * @title Full-stack integration test — REAL T-REX + KILT bridge + DvP on a local EVM.

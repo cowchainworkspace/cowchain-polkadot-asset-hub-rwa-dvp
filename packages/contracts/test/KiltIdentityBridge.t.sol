@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {Test} from "forge-std/Test.sol";
-import {KiltIdentityBridge} from "../src/KiltIdentityBridge.sol";
-import {ISystem, SYSTEM_PRECOMPILE} from "../src/precompiles/ISystem.sol";
-import {IIdentity} from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
+import { Test } from "forge-std/Test.sol";
+import { KiltIdentityBridge } from "../src/KiltIdentityBridge.sol";
+import { ISystem, SYSTEM_PRECOMPILE } from "../src/precompiles/ISystem.sol";
+import { IIdentity } from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
 
 /**
  * @title KiltIdentityBridge unit tests
@@ -30,9 +30,7 @@ contract KiltIdentityBridgeTest is Test {
     }
 
     function _mockPrecompile(bool verdict) internal {
-        vm.mockCall(
-            SYSTEM_PRECOMPILE, abi.encodeWithSelector(ISystem.sr25519Verify.selector), abi.encode(verdict)
-        );
+        vm.mockCall(SYSTEM_PRECOMPILE, abi.encodeWithSelector(ISystem.sr25519Verify.selector), abi.encode(verdict));
     }
 
     function _data(bytes32 key, bytes32 root, uint256 validUntil) internal pure returns (bytes memory) {
@@ -84,8 +82,7 @@ contract KiltIdentityBridgeTest is Test {
 
     function test_claimSigningMessage_isDeterministicAndBound() public view {
         bytes memory data = _data(attesterKey, rootHash, block.timestamp + 1 days);
-        bytes memory expected =
-            abi.encode(block.chainid, address(bridge), investorIdentity, KYC_TOPIC, data);
+        bytes memory expected = abi.encode(block.chainid, address(bridge), investorIdentity, KYC_TOPIC, data);
         assertEq(bridge.claimSigningMessage(IIdentity(investorIdentity), KYC_TOPIC, data), expected);
     }
 

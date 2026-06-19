@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {DvPSettlement} from "../../src/DvPSettlement.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { DvPSettlement } from "../../src/DvPSettlement.sol";
 
 /**
  * @notice Malicious cash token whose `transferFrom` re-enters {DvPSettlement-settle}, used to prove
@@ -14,7 +14,7 @@ contract ReentrantCash is ERC20 {
     uint256 private _tradeId;
     bool private _armed;
 
-    constructor() ERC20("Reentrant Cash", "rCASH") {}
+    constructor() ERC20("Reentrant Cash", "rCASH") { }
 
     function mint(address to, uint256 amount) external {
         _mint(to, amount);

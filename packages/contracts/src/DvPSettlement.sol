@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {IToken} from "./trex/token/IToken.sol";
-import {IIdentityRegistry} from "./trex/registry/interface/IIdentityRegistry.sol";
-import {IModularCompliance} from "./trex/compliance/modular/IModularCompliance.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { IToken } from "./trex/token/IToken.sol";
+import { IIdentityRegistry } from "./trex/registry/interface/IIdentityRegistry.sol";
+import { IModularCompliance } from "./trex/compliance/modular/IModularCompliance.sol";
 
 /**
  * @title  DvPSettlement
@@ -203,27 +203,27 @@ contract DvPSettlement is ReentrancyGuard {
         }
         try IToken(t.securityToken).paused() returns (bool isPaused) {
             if (isPaused) return (false, "token paused");
-        } catch {}
+        } catch { }
         try IToken(t.securityToken).isFrozen(t.seller) returns (bool sellerFrozen) {
             if (sellerFrozen) return (false, "seller wallet frozen");
-        } catch {}
+        } catch { }
         try IToken(t.securityToken).isFrozen(t.buyer) returns (bool buyerFrozen) {
             if (buyerFrozen) return (false, "buyer wallet frozen");
-        } catch {}
+        } catch { }
         try IToken(t.securityToken).identityRegistry() returns (IIdentityRegistry reg) {
             try reg.isVerified(t.buyer) returns (bool verified) {
                 if (!verified) return (false, "buyer not KYC-verified");
             } catch {
                 return (false, "identity check reverted");
             }
-        } catch {}
+        } catch { }
         try IToken(t.securityToken).compliance() returns (IModularCompliance comp) {
             try comp.canTransfer(t.seller, t.buyer, t.securityAmount) returns (bool compliant) {
                 if (!compliant) return (false, "compliance rule blocks transfer");
             } catch {
                 return (false, "compliance check reverted");
             }
-        } catch {}
+        } catch { }
 
         return (true, "");
     }

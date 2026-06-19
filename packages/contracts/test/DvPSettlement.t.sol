@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
-import {Test} from "forge-std/Test.sol";
-import {DvPSettlement} from "../src/DvPSettlement.sol";
-import {MockStablecoin} from "../src/MockStablecoin.sol";
-import {MockSecurityToken} from "./mocks/MockSecurityToken.sol";
-import {ReentrantCash} from "./mocks/ReentrantCash.sol";
+import { Test } from "forge-std/Test.sol";
+import { DvPSettlement } from "../src/DvPSettlement.sol";
+import { MockStablecoin } from "../src/MockStablecoin.sol";
+import { MockSecurityToken } from "./mocks/MockSecurityToken.sol";
+import { ReentrantCash } from "./mocks/ReentrantCash.sol";
 
 /**
  * @title DvPSettlement unit tests
@@ -59,7 +59,7 @@ contract DvPSettlementTest is Test {
         assertEq(cash.balanceOf(seller), PAY_AMOUNT, "seller got cash");
         assertEq(cash.balanceOf(buyer), 0, "buyer paid cash");
 
-        (, , , , , , , DvPSettlement.Status status) = dvp.trades(tradeId);
+        (,,,,,,, DvPSettlement.Status status) = dvp.trades(tradeId);
         assertEq(uint256(status), uint256(DvPSettlement.Status.Settled));
     }
 
@@ -107,8 +107,9 @@ contract DvPSettlementTest is Test {
 
     function test_settle_revertsWhenExpired() public {
         vm.prank(seller);
-        uint256 tradeId =
-            dvp.createTrade(buyer, address(security), SEC_AMOUNT, address(cash), PAY_AMOUNT, uint64(block.timestamp + 1 days));
+        uint256 tradeId = dvp.createTrade(
+            buyer, address(security), SEC_AMOUNT, address(cash), PAY_AMOUNT, uint64(block.timestamp + 1 days)
+        );
 
         vm.warp(block.timestamp + 2 days);
 
@@ -152,8 +153,7 @@ contract DvPSettlementTest is Test {
         evilCash.approve(address(dvp), PAY_AMOUNT);
 
         vm.prank(seller);
-        uint256 tradeId =
-            dvp.createTrade(buyer, address(security), SEC_AMOUNT, address(evilCash), PAY_AMOUNT, 0);
+        uint256 tradeId = dvp.createTrade(buyer, address(security), SEC_AMOUNT, address(evilCash), PAY_AMOUNT, 0);
 
         evilCash.arm(dvp, tradeId);
 
