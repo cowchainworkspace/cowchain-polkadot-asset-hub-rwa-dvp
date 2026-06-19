@@ -13,7 +13,7 @@
 
 ### ▶ Live demo
 
-**[Open the live demo →](https://ADD-YOUR-FRONTEND-URL-HERE)** &nbsp;—&nbsp; _replace this link with your deployed frontend URL._
+**[Open the live demo →](https://rwa-polkadot-evm.cowchain.io/)**
 The contracts are already live on [Polkadot Hub TestNet](https://blockscout-testnet.polkadot.io/address/0xE407A1951f0c8C958d424A32Af9492A2090c8A94).
 
 ---
