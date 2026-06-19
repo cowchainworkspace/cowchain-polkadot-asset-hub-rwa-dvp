@@ -105,11 +105,11 @@ export const dvpAbi = [
       { name: "seller", type: "address" },
       { name: "buyer", type: "address" },
       { name: "securityToken", type: "address" },
-      { name: "securityAmount", type: "uint256" },
       { name: "paymentToken", type: "address" },
-      { name: "paymentAmount", type: "uint256" },
       { name: "expiry", type: "uint64" },
       { name: "status", type: "uint8" },
+      { name: "securityAmount", type: "uint256" },
+      { name: "paymentAmount", type: "uint256" },
     ],
   },
   {

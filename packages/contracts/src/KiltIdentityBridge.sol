@@ -70,6 +70,9 @@ contract KiltIdentityBridge is Ownable2Step {
     event AttesterKeyUntrusted(bytes32 indexed attesterPubKey);
     event CredentialRevoked(bytes32 indexed kiltCredentialRootHash);
 
+    error OwnershipCannotBeRenounced();
+    error ZeroKey();
+
     // ──────────────────────────────────────────────────────────────────────────────────────
     //  Admin — manage the trusted attester set and revocations
     // ──────────────────────────────────────────────────────────────────────────────────────
@@ -77,12 +80,12 @@ contract KiltIdentityBridge is Ownable2Step {
     /// @notice Disabled: renouncing ownership would permanently freeze the trusted-attester set and the
     ///         revocation list with no way to rotate. Use {transferOwnership} (two-step) to hand over admin.
     function renounceOwnership() public view override onlyOwner {
-        revert("bridge: ownership cannot be renounced");
+        revert OwnershipCannotBeRenounced();
     }
 
     /// @notice Trust a KILT attester's sr25519 public key. Claims it signs become acceptable.
     function trustAttesterKey(bytes32 attesterPubKey) external onlyOwner {
-        require(attesterPubKey != bytes32(0), "bridge: zero key");
+        if (attesterPubKey == bytes32(0)) revert ZeroKey();
         trustedAttesterKeys[attesterPubKey] = true;
         emit AttesterKeyTrusted(attesterPubKey);
     }
@@ -147,8 +150,11 @@ contract KiltIdentityBridge is Ownable2Step {
 
         // Repack the 64-byte signature into the uint8[64] ABI shape the precompile expects.
         uint8[64] memory signature;
-        for (uint256 i = 0; i < 64; ++i) {
+        for (uint256 i = 0; i < 64;) {
             signature[i] = uint8(sig[i]);
+            unchecked {
+                ++i;
+            }
         }
 
         // NOTE: intentionally NOT internally guarded. On a chain without the 0x900 precompile this

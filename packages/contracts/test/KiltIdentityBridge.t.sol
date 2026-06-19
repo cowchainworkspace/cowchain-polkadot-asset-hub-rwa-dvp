@@ -93,8 +93,13 @@ contract KiltIdentityBridgeTest is Test {
     }
 
     function test_renounceOwnership_isDisabled() public {
-        vm.expectRevert(bytes("bridge: ownership cannot be renounced"));
+        vm.expectRevert(KiltIdentityBridge.OwnershipCannotBeRenounced.selector);
         bridge.renounceOwnership();
+    }
+
+    function test_trustAttesterKey_rejectsZeroKey() public {
+        vm.expectRevert(KiltIdentityBridge.ZeroKey.selector);
+        bridge.trustAttesterKey(bytes32(0));
     }
 
     /// @notice Pins the on-chain message reconstruction (isClaimValid) to claimSigningMessage's encoding:

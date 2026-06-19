@@ -150,6 +150,53 @@ contract FullStackTest is Test {
         _assertNothingMoved();
     }
 
+    /// @notice canSettle's ERC-3643 probe branches against the REAL T-REX: with a verified buyer it
+    ///         reports settleable; these reason-string branches are unreachable with the plain-ERC20
+    ///         MockSecurityToken (no getters), so they are only covered here.
+    function test_fullStack_canSettle_okForVerifiedBuyer() public view {
+        (bool ok, string memory reason) = dvp.canSettle(1);
+        assertTrue(ok, reason);
+        assertEq(reason, "");
+    }
+
+    /// @notice When the sr25519 verdict flips, the real IdentityRegistry reports the buyer unverified,
+    ///         and canSettle surfaces the exact "buyer not KYC-verified" reason (not a generic failure).
+    function test_fullStack_canSettle_reportsUnverifiedBuyer() public {
+        _mockPrecompile(false);
+        (bool ok, string memory reason) = dvp.canSettle(1);
+        assertFalse(ok);
+        assertEq(reason, "buyer not KYC-verified");
+    }
+
+    /// @notice Partially freezing the seller's tokens drives canSettle's getFrozenTokens branch (the
+    ///         one whose subtraction was hardened against underflow) against the REAL token.
+    function test_fullStack_canSettle_reportsPartiallyFrozenSeller() public {
+        token.freezePartialTokens(seller, BOND); // entire balance frozen -> transferable = 0
+        (bool ok, string memory reason) = dvp.canSettle(1);
+        assertFalse(ok);
+        assertEq(reason, "seller transferable balance too low");
+    }
+
+    function test_fullStack_canSettle_reportsPausedToken() public {
+        token.pause();
+        (bool ok, string memory reason) = dvp.canSettle(1);
+        assertFalse(ok);
+        assertEq(reason, "token paused");
+    }
+
+    function test_fullStack_canSettle_reportsFrozenWallets() public {
+        token.setAddressFrozen(seller, true);
+        (bool okSeller, string memory reasonSeller) = dvp.canSettle(1);
+        assertFalse(okSeller);
+        assertEq(reasonSeller, "seller wallet frozen");
+        token.setAddressFrozen(seller, false);
+
+        token.setAddressFrozen(buyer, true);
+        (bool okBuyer, string memory reasonBuyer) = dvp.canSettle(1);
+        assertFalse(okBuyer);
+        assertEq(reasonBuyer, "buyer wallet frozen");
+    }
+
     function _assertNothingMoved() internal view {
         assertEq(token.balanceOf(seller), BOND, "security stayed with seller");
         assertEq(token.balanceOf(buyer), 0);

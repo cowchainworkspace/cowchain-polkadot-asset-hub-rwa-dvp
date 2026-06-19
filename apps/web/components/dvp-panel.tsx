@@ -9,7 +9,8 @@ import { AddressLink, Badge, Button, Card } from "./ui";
 const BOND_DECIMALS = 18;
 const CASH_DECIMALS = 6;
 
-type Trade = readonly [`0x${string}`, `0x${string}`, `0x${string}`, bigint, `0x${string}`, bigint, bigint, number];
+// On-chain Trade getter order (packing-optimised): [seller, buyer, securityToken, paymentToken, expiry, status, securityAmount, paymentAmount].
+type Trade = readonly [`0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`, bigint, number, bigint, bigint];
 
 export function DvpPanel() {
   const { address, isConnected, chainId } = useAccount();
@@ -64,7 +65,7 @@ export function DvpPanel() {
 
   const myTrades = (tradesRead.data ?? [])
     .map((r, i) => ({ id: i + 1, t: r.result as Trade | undefined }))
-    .filter((x): x is { id: number; t: Trade } => !!x.t && x.t[7] === 1 && (x.t[0].toLowerCase() === me || x.t[1].toLowerCase() === me));
+    .filter((x): x is { id: number; t: Trade } => !!x.t && x.t[5] === 1 && (x.t[0].toLowerCase() === me || x.t[1].toLowerCase() === me));
 
   function createTrade() {
     if (!validBuyer || !bond || !cash) return;
@@ -150,8 +151,8 @@ export function DvpPanel() {
           <div className="space-y-3">
             {myTrades.map(({ id, t }) => {
               const iAmSeller = t[0].toLowerCase() === me;
-              const bondAmt = t[3];
-              const cashAmt = t[5];
+              const bondAmt = t[6]; // securityAmount
+              const cashAmt = t[7]; // paymentAmount
               const needBondApproval = iAmSeller && bondAllowance < bondAmt;
               const needCashApproval = !iAmSeller && cashAllowance < cashAmt;
               return (

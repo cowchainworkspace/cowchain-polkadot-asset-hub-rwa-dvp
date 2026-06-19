@@ -6,17 +6,17 @@ import { contracts, dvpAbi, erc20Abi, TRADE_STATUS } from "@/lib/contracts";
 import { AddressLink, Badge, Card, Stat } from "./ui";
 
 // The `trades(uint256)` mapping getter returns the struct's fields flattened, so viem decodes it as a
-// positional tuple (NOT an object): [seller, buyer, securityToken, securityAmount, paymentToken,
-// paymentAmount, expiry, status].
+// positional tuple (NOT an object). Field order is packing-optimised on-chain: [seller, buyer,
+// securityToken, paymentToken, expiry, status, securityAmount, paymentAmount].
 type TradeTuple = readonly [
   `0x${string}`, // seller
   `0x${string}`, // buyer
   `0x${string}`, // securityToken
-  bigint, // securityAmount
   `0x${string}`, // paymentToken
-  bigint, // paymentAmount
   bigint, // expiry
   number, // status
+  bigint, // securityAmount
+  bigint, // paymentAmount
 ];
 
 function statusBadge(status: number) {
@@ -41,7 +41,7 @@ export function ReportingPanel() {
     query: { enabled: n > 0 },
   });
 
-  const settled = (trades.data ?? []).filter((t) => (t.result as TradeTuple | undefined)?.[7] === 2).length;
+  const settled = (trades.data ?? []).filter((t) => (t.result as TradeTuple | undefined)?.[5] === 2).length;
 
   return (
     <div className="space-y-5">
@@ -77,7 +77,7 @@ export function ReportingPanel() {
                 {(trades.data ?? []).map((t, i) => {
                   const trade = t.result as TradeTuple | undefined;
                   if (!trade) return null;
-                  const [seller, buyer, , securityAmount, , paymentAmount, , status] = trade;
+                  const [seller, buyer, , , , status, securityAmount, paymentAmount] = trade;
                   return (
                     <tr key={i} className="border-b border-edge/50">
                       <td className="py-2.5 pr-4 font-mono text-muted">{i + 1}</td>

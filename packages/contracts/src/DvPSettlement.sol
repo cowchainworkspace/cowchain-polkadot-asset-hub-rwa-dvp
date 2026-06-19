@@ -54,16 +54,29 @@ contract DvPSettlement is ReentrancyGuard {
         Cancelled
     }
 
+    // Field order is packing-optimised: the four addresses come first, then `paymentToken` shares its
+    // slot with `expiry` (uint64) + `status` (enum) — 20+8+1 = 29 bytes ≤ 32 — so a Trade occupies 6
+    // storage slots instead of 7, saving ~one cold SSTORE per createTrade.
     struct Trade {
         address seller; // delivers the security token (the issuer, for a primary subscription)
         address buyer; // delivers the cash, receives the security
         address securityToken; // ERC-3643 security token
-        uint256 securityAmount;
         address paymentToken; // stablecoin / cash token (plain ERC-20)
-        uint256 paymentAmount;
-        uint64 expiry; // unix seconds; 0 = no expiry
+        uint64 expiry; // unix seconds; 0 = no expiry  (packs with paymentToken + status)
         Status status;
+        uint256 securityAmount;
+        uint256 paymentAmount;
     }
+
+    error ZeroBuyer();
+    error SelfTrade();
+    error ZeroToken();
+    error ZeroAmount();
+    error BadExpiry();
+    error NotPending();
+    error NotAParty();
+    error NotSettleable();
+    error Expired();
 
     /// @notice All trades by id. Ids start at 1.
     mapping(uint256 => Trade) public trades;
@@ -100,22 +113,22 @@ contract DvPSettlement is ReentrancyGuard {
         uint256 paymentAmount,
         uint64 expiry
     ) external returns (uint256 tradeId) {
-        require(buyer != address(0), "dvp: zero buyer");
-        require(buyer != msg.sender, "dvp: self trade");
-        require(securityToken != address(0) && paymentToken != address(0), "dvp: zero token");
-        require(securityAmount > 0 && paymentAmount > 0, "dvp: zero amount");
-        require(expiry == 0 || expiry > block.timestamp, "dvp: bad expiry");
+        if (buyer == address(0)) revert ZeroBuyer();
+        if (buyer == msg.sender) revert SelfTrade();
+        if (securityToken == address(0) || paymentToken == address(0)) revert ZeroToken();
+        if (securityAmount == 0 || paymentAmount == 0) revert ZeroAmount();
+        if (expiry != 0 && expiry <= block.timestamp) revert BadExpiry();
 
         tradeId = ++tradeCount;
         trades[tradeId] = Trade({
             seller: msg.sender,
             buyer: buyer,
             securityToken: securityToken,
-            securityAmount: securityAmount,
             paymentToken: paymentToken,
-            paymentAmount: paymentAmount,
             expiry: expiry,
-            status: Status.Pending
+            status: Status.Pending,
+            securityAmount: securityAmount,
+            paymentAmount: paymentAmount
         });
 
         emit TradeCreated(
@@ -126,8 +139,8 @@ contract DvPSettlement is ReentrancyGuard {
     /// @notice Cancel a still-pending trade. Either counterparty may cancel.
     function cancelTrade(uint256 tradeId) external {
         Trade storage t = trades[tradeId];
-        require(t.status == Status.Pending, "dvp: not pending");
-        require(msg.sender == t.seller || msg.sender == t.buyer, "dvp: not a party");
+        if (t.status != Status.Pending) revert NotPending();
+        if (msg.sender != t.seller && msg.sender != t.buyer) revert NotAParty();
         t.status = Status.Cancelled;
         emit TradeCancelled(tradeId);
     }
@@ -145,9 +158,9 @@ contract DvPSettlement is ReentrancyGuard {
      */
     function settle(uint256 tradeId) external nonReentrant {
         Trade storage t = trades[tradeId];
-        require(t.status == Status.Pending, "dvp: not settleable");
-        require(msg.sender == t.seller || msg.sender == t.buyer, "dvp: not a party");
-        require(t.expiry == 0 || block.timestamp <= t.expiry, "dvp: expired");
+        if (t.status != Status.Pending) revert NotSettleable();
+        if (msg.sender != t.seller && msg.sender != t.buyer) revert NotAParty();
+        if (t.expiry != 0 && block.timestamp > t.expiry) revert Expired();
 
         // Effects before interactions: a reentrant settle() of this trade now fails the guard above.
         t.status = Status.Settled;
@@ -193,7 +206,10 @@ contract DvPSettlement is ReentrancyGuard {
         // wrapped in its own try/catch: the OUTER catch skips a non-ERC-3643 token (getter absent), while an
         // INNER catch means a configured-but-reverting check that settle would also hit — so report it.
         try IToken(t.securityToken).getFrozenTokens(t.seller) returns (uint256 frozen) {
-            if (IERC20(t.securityToken).balanceOf(t.seller) - frozen < t.securityAmount) {
+            // Guard the subtraction: a misconfigured token where frozen > balance would otherwise
+            // underflow-revert here (0.8 checked math) and break this view's "never reverts" contract.
+            uint256 bal = IERC20(t.securityToken).balanceOf(t.seller);
+            if (bal < frozen || bal - frozen < t.securityAmount) {
                 return (false, "seller transferable balance too low");
             }
         } catch {

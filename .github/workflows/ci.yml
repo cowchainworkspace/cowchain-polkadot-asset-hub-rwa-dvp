@@ -72,3 +72,32 @@ jobs:
 
       - name: Build
         run: pnpm --filter @cowchain/web build
+
+  # Gates the bridge's actual cryptography: forge tests can only MOCK the 0x900 precompile, so this is
+  # the one CI check that verifies a genuine @polkadot/keyring sr25519 signature against the LIVE System
+  # precompile on Polkadot Hub TestNet (true for a valid sig, false for a tampered one). Read-only
+  # eth_call against the public RPC — no funded key or secret. If testnet RPC flakiness becomes a
+  # problem, set `continue-on-error: true` to make it informational rather than blocking.
+  sr25519-probe:
+    name: sr25519 precompile probe (live Hub)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify sr25519Verify on 0x900 (live)
+        run: pnpm --filter @cowchain/kilt probe
+        env:
+          HUB_TESTNET_RPC_URL: https://eth-rpc-testnet.polkadot.io/

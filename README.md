@@ -212,8 +212,9 @@ All of this runs as real transactions on Polkadot Hub TestNet — not mocks:
 - ✅ The complete lifecycle settles on-chain: KILT-verified onboarding → issuance → **atomic DvP**, and a mint to a
   non-verified address **reverts** (`pnpm --filter @cowchain/kilt demo`).
 - ✅ The XCM precompile `0xA0000` is live and callable (`pnpm --filter @cowchain/kilt probe:xcm`).
-- ✅ 31 Foundry tests pass, including a **full-stack integration test** that deploys the real T-REX + bridge and
-  proves `isVerified` routes through the bridge and DvP composes with real ERC-3643 compliance.
+- ✅ 47 Foundry tests pass — unit, fuzz, and invariant — including a **full-stack integration test** that deploys
+  the real T-REX + bridge and proves `isVerified` routes through the bridge and DvP composes with real ERC-3643
+  compliance.
 
 ---
 
@@ -233,7 +234,7 @@ cowchain-rwa-dvp/
 │  │  │  ├─ MockStablecoin.sol      simple ERC-20 cash leg
 │  │  │  └─ precompiles/            ISystem.sol (0x900), IXcm.sol (0xA0000)
 │  │  ├─ script/DeployTREX.s.sol    deploy + wire the whole stack
-│  │  ├─ test/                      31 tests (unit + integration/FullStack.t.sol)
+│  │  ├─ test/                      47 tests (unit + fuzz + invariant + integration/FullStack.t.sol)
 │  │  └─ deployments/               hub-testnet.json (live addresses)
 │  └─ kilt/                         off-chain KILT attester (TypeScript)
 │     └─ src/                       keygen · probe · probe-xcm · claim · demo
@@ -285,7 +286,7 @@ cp .env.example .env                          # fill HUB_DEPLOYER_PRIVATE_KEY (o
 
 # Contracts
 pnpm --filter @cowchain/contracts build       # compile (Foundry nightly)
-pnpm --filter @cowchain/contracts test        # 31 tests (unit + full-stack integration)
+pnpm --filter @cowchain/contracts test        # 47 tests (unit + fuzz + invariant + full-stack integration)
 forge script DeployTREX --root packages/contracts --rpc-url $HUB_TESTNET_RPC_URL --broadcast --slow
 
 # KILT off-chain attester
@@ -318,14 +319,18 @@ A connected-wallet dashboard (wagmi/viem) with network guards (auto-prompts a sw
 
 ## Testing
 
-31 Foundry tests, run on a local EVM (Anvil). The 0x900 precompile is mocked in unit tests; end-to-end sr25519
-verification against the real precompile is proven by the `packages/kilt` scripts on the live testnet.
+47 Foundry tests (unit + fuzz + invariant), run on a local EVM (Anvil). The 0x900 precompile is mocked in unit
+tests; end-to-end sr25519 verification against the real precompile is proven by the `packages/kilt` scripts on the
+live testnet.
 
 | Suite | Tests | Proves |
 |---|---|---|
-| `DvPSettlement.t.sol` | 16 | atomicity, compliance-revert composition, reentrancy safety, expiry, cancel, `canSettle` |
-| `KiltIdentityBridge.t.sol` | 11 | signature soundness, replay binding, expiry/revocation, message-reconstruction pin |
-| `integration/FullStack.t.sol` | 4 | the **real** T-REX + bridge: `isVerified` routes through the bridge; DvP composes with real compliance |
+| `DvPSettlement.t.sol` | 17 | atomicity, compliance-revert composition, reentrancy safety, expiry, cancel, `canSettle`, fee-on-transfer limitation |
+| `DvPSettlement.fuzz.t.sol` | 2 | global value conservation; `canSettle` is a faithful oracle for `settle` (incl. short seller balance) |
+| `DvPSettlement.invariant.t.sol` | 2 | DvP never custodies tokens; `Settled`/`Cancelled` are terminal (fuzzed callers) |
+| `KiltIdentityBridge.t.sol` | 12 | signature soundness, replay binding, expiry/revocation, zero-key reject, message-reconstruction pin |
+| `KiltIdentityBridge.fuzz.t.sol` | 5 | accept ⇔ trusted key ∧ 64-byte sig ∧ unexpired ∧ not-revoked ∧ valid sr25519 verdict |
+| `integration/FullStack.t.sol` | 9 | the **real** T-REX + bridge: `isVerified` routes through the bridge; DvP + `canSettle` compose with real compliance/freeze/pause |
 
 ---
 

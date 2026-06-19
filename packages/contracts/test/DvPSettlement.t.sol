@@ -6,6 +6,7 @@ import { DvPSettlement } from "../src/DvPSettlement.sol";
 import { MockStablecoin } from "../src/MockStablecoin.sol";
 import { MockSecurityToken } from "./mocks/MockSecurityToken.sol";
 import { ReentrantCash } from "./mocks/ReentrantCash.sol";
+import { FeeOnTransferToken } from "./mocks/FeeOnTransferToken.sol";
 
 /**
  * @title DvPSettlement unit tests
@@ -59,7 +60,7 @@ contract DvPSettlementTest is Test {
         assertEq(cash.balanceOf(seller), PAY_AMOUNT, "seller got cash");
         assertEq(cash.balanceOf(buyer), 0, "buyer paid cash");
 
-        (,,,,,,, DvPSettlement.Status status) = dvp.trades(tradeId);
+        (,,,,, DvPSettlement.Status status,,) = dvp.trades(tradeId);
         assertEq(uint256(status), uint256(DvPSettlement.Status.Settled));
     }
 
@@ -91,7 +92,7 @@ contract DvPSettlementTest is Test {
     function test_settle_revertsForNonParty() public {
         uint256 tradeId = _createTrade();
         vm.prank(stranger);
-        vm.expectRevert(bytes("dvp: not a party"));
+        vm.expectRevert(DvPSettlement.NotAParty.selector);
         dvp.settle(tradeId);
     }
 
@@ -101,7 +102,7 @@ contract DvPSettlementTest is Test {
         dvp.cancelTrade(tradeId);
 
         vm.prank(buyer);
-        vm.expectRevert(bytes("dvp: not settleable"));
+        vm.expectRevert(DvPSettlement.NotSettleable.selector);
         dvp.settle(tradeId);
     }
 
@@ -118,7 +119,7 @@ contract DvPSettlementTest is Test {
         assertEq(reason, "expired");
 
         vm.prank(buyer);
-        vm.expectRevert(bytes("dvp: expired"));
+        vm.expectRevert(DvPSettlement.Expired.selector);
         dvp.settle(tradeId);
     }
 
@@ -134,13 +135,13 @@ contract DvPSettlementTest is Test {
 
     function test_createTrade_rejectsBadInput() public {
         vm.startPrank(seller);
-        vm.expectRevert(bytes("dvp: zero buyer"));
+        vm.expectRevert(DvPSettlement.ZeroBuyer.selector);
         dvp.createTrade(address(0), address(security), SEC_AMOUNT, address(cash), PAY_AMOUNT, 0);
 
-        vm.expectRevert(bytes("dvp: self trade"));
+        vm.expectRevert(DvPSettlement.SelfTrade.selector);
         dvp.createTrade(seller, address(security), SEC_AMOUNT, address(cash), PAY_AMOUNT, 0);
 
-        vm.expectRevert(bytes("dvp: zero amount"));
+        vm.expectRevert(DvPSettlement.ZeroAmount.selector);
         dvp.createTrade(buyer, address(security), 0, address(cash), PAY_AMOUNT, 0);
         vm.stopPrank();
     }
@@ -171,7 +172,7 @@ contract DvPSettlementTest is Test {
         vm.prank(buyer);
         dvp.settle(tradeId);
         vm.prank(buyer);
-        vm.expectRevert(bytes("dvp: not settleable"));
+        vm.expectRevert(DvPSettlement.NotSettleable.selector);
         dvp.settle(tradeId);
     }
 
@@ -202,9 +203,9 @@ contract DvPSettlementTest is Test {
     function test_createTrade_rejectsZeroTokenAndBadExpiry() public {
         vm.warp(1_000_000); // so block.timestamp - 1 is a real past deadline, not the 0 "no expiry" sentinel
         vm.startPrank(seller);
-        vm.expectRevert(bytes("dvp: zero token"));
+        vm.expectRevert(DvPSettlement.ZeroToken.selector);
         dvp.createTrade(buyer, address(0), SEC_AMOUNT, address(cash), PAY_AMOUNT, 0);
-        vm.expectRevert(bytes("dvp: bad expiry"));
+        vm.expectRevert(DvPSettlement.BadExpiry.selector);
         dvp.createTrade(buyer, address(security), SEC_AMOUNT, address(cash), PAY_AMOUNT, uint64(block.timestamp - 1));
         vm.stopPrank();
     }
@@ -212,13 +213,13 @@ contract DvPSettlementTest is Test {
     function test_cancelTrade_accessControlAndPostSettle() public {
         uint256 tradeId = _createTrade();
         vm.prank(stranger);
-        vm.expectRevert(bytes("dvp: not a party"));
+        vm.expectRevert(DvPSettlement.NotAParty.selector);
         dvp.cancelTrade(tradeId);
 
         vm.prank(buyer);
         dvp.settle(tradeId);
         vm.prank(seller);
-        vm.expectRevert(bytes("dvp: not pending"));
+        vm.expectRevert(DvPSettlement.NotPending.selector);
         dvp.cancelTrade(tradeId);
     }
 
@@ -228,6 +229,29 @@ contract DvPSettlementTest is Test {
         uint256 tradeId = _createTrade();
         (bool ok, string memory reason) = dvp.canSettle(tradeId);
         assertTrue(ok, reason);
+    }
+
+    /// @notice Documents the contract's stated limitation: the cash leg settles by exact transferFrom,
+    ///         so a fee-on-transfer payment token leaves the seller with LESS than the agreed price.
+    ///         This is why createTrade's natspec requires a standard, non-fee-on-transfer paymentToken
+    ///         (and why a curated paymentToken allowlist is on the production roadmap).
+    function test_settle_feeOnTransferCash_shortchangesSeller() public {
+        FeeOnTransferToken feeCash = new FeeOnTransferToken();
+        feeCash.mint(buyer, PAY_AMOUNT);
+        vm.prank(buyer);
+        feeCash.approve(address(dvp), PAY_AMOUNT);
+
+        vm.prank(seller);
+        uint256 tradeId = dvp.createTrade(buyer, address(security), SEC_AMOUNT, address(feeCash), PAY_AMOUNT, 0);
+
+        vm.prank(buyer);
+        dvp.settle(tradeId);
+
+        uint256 fee = (PAY_AMOUNT * feeCash.FEE_BPS()) / 10_000;
+        assertEq(feeCash.balanceOf(seller), PAY_AMOUNT - fee, "seller receives price minus the transfer fee");
+        assertLt(feeCash.balanceOf(seller), PAY_AMOUNT, "seller is shortchanged by a fee-on-transfer cash token");
+        // The security leg is still fully delivered — the asymmetry is the whole point of the warning.
+        assertEq(security.balanceOf(buyer), SEC_AMOUNT, "buyer still received the full security amount");
     }
 
     function test_tradeIds_startAtOneAndIncrement() public {
